@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="binarysearchtree.cpp" />
     <ClCompile Include="Heapify.cpp" />
     <ClCompile Include="Shift-Down.cpp" />
     <ClCompile Include="Shift-Up.cpp" />

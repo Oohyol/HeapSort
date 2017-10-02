@@ -1,8 +1,6 @@
 #include <iostream>
-#include <vector>
-#include <string>
-#include "SequenceST.h"
-#include "FileOps.h"
+#include <queue>
+#include <cassert>
 
 using namespace std;
 
@@ -21,6 +19,13 @@ private:
 			this->value = value;
 			this->left = this->right = NULL;
 		}
+
+		Node(Node *node) {
+			this->key = node->key;
+			this->value = node->value;
+			this->left = node->left;
+			this->right = node->right;
+		}
 	};
 
 	Node *root;
@@ -32,7 +37,7 @@ public:
 		count = 0;
 	}
 	~BST() {
-		// TODO: ~BST()
+		destroy(root);
 	}
 
 	int size() {
@@ -53,6 +58,71 @@ public:
 
 	Value* search(Key key) {
 		return search(root, key);
+	}
+
+	// 前序遍历
+	void preOrder() {
+		preOrder(root);
+	}
+
+	// 中序遍历
+	void inOrder() {
+		inOrder(root);
+	}
+
+	// 后序遍历
+	void postOrder() {
+		postOrder(root);
+	}
+
+	// 层序遍历
+	void levelOrder() {
+
+		queue<Node*> q;
+		q.push(root);
+		while (!q.empty()) {
+
+			Node *node = q.front();
+			q.pop();
+
+			cout << node->key << endl;
+
+			if (node->left)
+				q.push(node->left);
+			if (node->right)
+				q.push(node->right);
+		}
+	}
+
+	// 寻找最小的键值
+	Key minimum() {
+		assert(count != 0);
+		Node* minNode = minimum(root);
+		return minNode->key;
+	}
+
+	// 寻找最大的键值
+	Key maximum() {
+		assert(count != 0);
+		Node* maxNode = maximum(root);
+		return maxNode->key;
+	}
+
+	// 从二叉树中删除最小值所在节点
+	void removeMin() {
+		if (root)
+			root = removeMin(root);
+	}
+
+	// 从二叉树中删除最大值所在节点
+	void removeMax() {
+		if (root)
+			root = removeMax(root);
+	}
+
+	// 从二叉树中删除键值为key的节点
+	void remove(Key key) {
+		root = remove(root, key);
 	}
 
 private:
@@ -102,55 +172,178 @@ private:
 		else // key > node->key
 			return search(node->right, key);
 	}
+
+	// 对以node为根的二叉搜索树进行前序遍历
+	void preOrder(Node* node) {
+
+		if (node != NULL) {
+			cout << node->key << endl;
+			preOrder(node->left);
+			preOrder(node->right);
+		}
+	}
+
+	// 对以node为根的二叉搜索树进行中序遍历
+	void inOrder(Node* node) {
+
+		if (node != NULL) {
+			inOrder(node->left);
+			cout << node->key << endl;
+			inOrder(node->right);
+		}
+	}
+
+	// 对以node为根的二叉搜索树进行后序遍历
+	void postOrder(Node* node) {
+
+		if (node != NULL) {
+			postOrder(node->left);
+			postOrder(node->right);
+			cout << node->key << endl;
+		}
+	}
+
+	void destroy(Node* node) {
+
+		if (node != NULL) {
+			destroy(node->left);
+			destroy(node->right);
+
+			delete node;
+			count--;
+		}
+	}
+
+	// 在以node为根的二叉搜索树中,返回最小键值的节点
+	Node* minimum(Node* node) {
+		if (node->left == NULL)
+			return node;
+
+		return minimum(node->left);
+	}
+
+	// 在以node为根的二叉搜索树中,返回最大键值的节点
+	Node* maximum(Node* node) {
+		if (node->right == NULL)
+			return node;
+
+		return maximum(node->right);
+	}
+
+	// 删除掉以node为根的二分搜索树中的最小节点
+	// 返回删除节点后新的二分搜索树的根
+	Node* removeMin(Node* node) {
+
+		if (node->left == NULL) {
+
+			Node* rightNode = node->right;
+			delete node;
+			count--;
+			return rightNode;
+		}
+
+		node->left = removeMin(node->left);
+		return node;
+	}
+
+	// 删除掉以node为根的二分搜索树中的最大节点
+	// 返回删除节点后新的二分搜索树的根
+	Node* removeMax(Node* node) {
+
+		if (node->right == NULL) {
+
+			Node* leftNode = node->left;
+			delete node;
+			count--;
+			return leftNode;
+		}
+
+		node->right = removeMax(node->right);
+		return node;
+	}
+
+	// 删除掉以node为根的二分搜索树中键值为key的节点
+	// 返回删除节点后新的二分搜索树的根
+	Node* remove(Node* node, Key key) {
+
+		if (node == NULL)
+			return NULL;
+
+		if (key < node->key) {
+			node->left = remove(node->left, key);
+			return node;
+		}
+		else if (key > node->key) {
+			node->right = remove(node->right, key);
+			return node;
+		}
+		else {   // key == node->key
+
+			if (node->left == NULL) {
+				Node *rightNode = node->right;
+				delete node;
+				count--;
+				return rightNode;
+			}
+
+			if (node->right == NULL) {
+				Node *leftNode = node->left;
+				delete node;
+				count--;
+				return leftNode;
+			}
+
+			// node->left != NULL && node->right != NULL
+			Node *successor = new Node(minimum(node->right));
+			count++;
+
+			successor->right = removeMin(node->right);
+			successor->left = node->left;
+
+			delete node;
+			count--;
+
+			return successor;
+		}
+	}
 };
 
 
+void shuffle(int arr[], int n) {
+
+	srand(time(NULL));
+	for (int i = n - 1; i >= 0; i--) {
+		int x = rand() % (i + 1);
+		swap(arr[i], arr[x]);
+	}
+}
+
 int main() {
 
-	string filename = "bible.txt";
-	vector<string> words;
-	if (FileOps::readFile(filename, words)) {
+	srand(time(NULL));
+	BST<int, int> bst = BST<int, int>();
 
-		cout << "There are totally " << words.size() << " words in " << filename << endl;
-
-		cout << endl;
-
-
-		// test BST
-		time_t startTime = clock();
-		BST<string, int> bst = BST<string, int>();
-		for (vector<string>::iterator iter = words.begin(); iter != words.end(); iter++) {
-			int *res = bst.search(*iter);
-			if (res == NULL)
-				bst.insert(*iter, 1);
-			else
-				(*res)++;
-		}
-
-		cout << "'god' : " << *bst.search("god") << endl;
-		time_t endTime = clock();
-		cout << "BST , time: " << double(endTime - startTime) / CLOCKS_PER_SEC << " s." << endl;
-
-		cout << endl;
-
-
-		// test SST
-		startTime = clock();
-		SequenceST<string, int> sst = SequenceST<string, int>();
-		for (vector<string>::iterator iter = words.begin(); iter != words.end(); iter++) {
-			int *res = sst.search(*iter);
-			if (res == NULL)
-				sst.insert(*iter, 1);
-			else
-				(*res)++;
-		}
-
-		cout << "'god' : " << *sst.search("god") << endl;
-
-		endTime = clock();
-		cout << "SST , time: " << double(endTime - startTime) / CLOCKS_PER_SEC << " s." << endl;
-
+	int n = 10000;
+	for (int i = 0; i < n; i++) {
+		int key = rand() % n;
+		// 为了后续测试方便,这里value值取和key值一样
+		int value = key;
+		//cout<<key<<" ";
+		bst.insert(key, value);
 	}
+
+	// test remove
+	// remove elements in random order
+	int order[n];
+	for (int i = 0; i < n; i++)
+		order[i] = i;
+	shuffle(order, n);
+
+	for (int i = 0; i < n; i++)
+		if (bst.contain(order[i])) {
+			bst.remove(order[i]);
+			cout << "After remove " << order[i] << " size = " << bst.size() << endl;
+		}
 
 	return 0;
 }
